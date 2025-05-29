@@ -1,71 +1,174 @@
-# markdown-kanban README
+# Markdown Kanban
+> Made by cursor
 
-This is the README for your extension "markdown-kanban". After writing up a brief description, we recommend including the following sections.
+A powerful VS Code extension that transforms Markdown files into interactive Kanban boards, supporting task management, drag-and-drop operations, and rich task attributes.
 
-## Features
+## ✨ Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+### 📋 Basic Features
+- **Markdown Parsing**: Automatically parses task lists from Markdown files.
+- **Kanban View**: Displays tasks in a Kanban board format with multi-column layout.
+- **Drag & Drop**: Supports dragging and dropping tasks between different columns.
+- **Real-time Sync**: Ensures real-time, two-way synchronization between the Kanban board and the Markdown file.
 
-For example if there is an image subfolder under your extension project workspace:
+### 🎯 Task Management
+- **Task Collapse/Expand**: Tasks are collapsed by default, showing only the task name, priority, and tags. Click to expand for details.
+- **Priority Support**: Supports three priority levels: High (🔴), Medium (🟡), and Low (🟢).
+- **Tagging System**: Supports multiple tags for categorization, using `#tagname` or `[tag1, tag2]` format.
+- **Time Management**:
+  - Due Date: `due:YYYY-MM-DD`
+  - **Due Date Display**: Shows remaining days on task cards, with color indicators for overdue, urgent, and upcoming tasks.
+- **Task Description**: Supports multi-line detailed descriptions, including the new code block format.
 
-\!\[feature X\]\(images/feature-x.png\)
+### 🆕 Task Format
+Supports a structured task format for better readability and organization:
+- **Structured Attributes**: Task attributes use an indented list format.
+- **Code Block Descriptions**: Use ```` ```md ```` code blocks for detailed descriptions.
+- **Array Tags**: Tags support `[tag1, tag2, tag3]` array format.
+- **Backward Compatibility**: Fully compatible with the old inline format.
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+### 🔍 Filtering & Sorting
+- **Tag Filtering**: Filter tasks by tags; multiple tags (comma-separated) are supported.
+- **Multiple Sorting Options**:
+  - Sort by Task Name
+  - Sort by Due Date
+  - Sort by Priority
+  - Sort by Tags
+- **Clear Filters**: One-click to clear all filtering and sorting conditions.
 
-## Requirements
+### 🖥️ UI Features
+- **Dual View Mode**:
+  - Sidebar View: Compact Kanban display.
+  - Main Panel: Full Kanban editing interface.
+- **Modern UI**: Adheres to VS Code design guidelines and supports theme switching.
+- **Responsive Design**: Adapts to different screen sizes.
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+## 🚀 Quick Start
 
-## Extension Settings
+### Installation
+1. Search for "Markdown Kanban" in the VS Code Extension Marketplace.
+2. Click Install.
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+### How to Use
 
-For example:
+#### 1. Create a Markdown Kanban File
 
-This extension contributes the following settings:
+```markdown
+# My Project Board
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+## To Do
 
-## Known Issues
+- Design User Interface
+  - due: 2024-01-15
+  - tags: [design, ui, frontend]
+  - priority: high
+    ```md
+    Design user login and registration pages, including:
+    - Responsive layout design
+    - Brand color application
+    - User experience optimization
+    ```
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+- Write API Documentation
+  - due: 2024-01-20
+  - tags: [documentation, backend]
+  - priority: medium
+    ```md
+    Write complete REST API documentation using OpenAPI 3.0 specification.
+    Include request and response examples for all endpoints.
+    ```
 
-## Release Notes
+## In Progress
 
-Users appreciate release notes as you update your extension.
+- Implement User Authentication
+  - due: 2024-01-18
+  - tags: [backend, security]
+  - priority: high
+    ```md
+    Implement a complete user authentication system, including login, registration, and permission management.
+    ```
 
-### 1.0.0
+## Done
 
-Initial release of ...
+- Project Initialization
+  - due: 2024-01-05
+  - tags: [setup]
+  - priority: low
+```
 
-### 1.0.1
+#### 2. Open Kanban View
+- **Method 1**: Right-click on the Markdown file → Select "Open as Kanban Board"
+- **Method 2**: Use the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`) → Type "Open Kanban Board"
+- **Method 3**: Check the Kanban view in the sidebar.
 
-Fixed issue #.
+#### 3. Use Filtering and Sorting
+- **Tag Filtering**: Enter tag names in the top filter box (e.g., design,ui).
+- **Sorting**: Use the sort dropdown menu to select a sorting method.
+- **Clear**: Click the "Clear Filters" button to reset all conditions.
 
-### 1.1.0
+#### 4. Task Operations
+- **View Task**: Click on a task card to expand/collapse detailed information.
+- **Move Task**: Drag and drop tasks to different columns.
+- **Edit Task**: Click the "Edit" button on a task.
+- **Delete Task**: Click the "Delete" button on a task.
+- **Add Task**: Click the "+ Add Task" button at the bottom of a column.
 
-Added features X, Y, and Z.
+#### 5. Column Management
+- **Hide Column**: Click the eye icon on the right side of the column title.
+- **Show Hidden Columns**: Click the "Manage Columns" button and enter the column number when prompted.
+- **Reorder Columns**: Drag and drop column titles to reorder them.
 
----
+## 📝 Markdown Format Guide
 
-## Following extension guidelines
+### 🆕 New Format (v1.2.0+)
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+**Basic Structure**:
+```markdown
+# Board Title
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+## Column Title
 
-## Working with Markdown
+- Task Name
+  - due: 2024-01-15
+  - tags: [tag1, tag2, tag3]
+  - priority: high
+    ```md
+    Detailed task description
+    Supports multi-line content
+    ```
+```
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+**Attribute Descriptions**:
+- `due: YYYY-MM-DD` - Due date
+- `tags: [tag1, tag2, tag3]` - Tag array
+- `priority: low|medium|high` - Priority (low/medium/high)
+- Descriptions use ```` ```md ```` code block format.
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+**Advantages**:
+- Better structure and readability.
+- Tags support array format, avoiding conflicts.
+- Descriptions support full Markdown syntax.
+- Easier to parse and maintain.
 
-## For more information
+### 💡 Format Selection Guide
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+- **New Projects**: Recommended to use the new format for a better experience.
+- **Existing Projects**: Can continue using the legacy format or gradually migrate to the new format.
+- **Mixed Usage**: Supports using both formats in the same file.
 
-**Enjoy!**
+### Due Date Display Explanation
+- **Overdue**: Red background, displays "Overdue X days"
+- **Due Today**: Orange background, displays "Due Today"
+- **Due Tomorrow**: Orange background, displays "Due Tomorrow"
+- **Within 3 Days**: Green background, displays "X days left"
+- **Others**: Gray background, displays "X days left"
+
+## ⌨️ Keyboard Shortcuts
+
+| Shortcut                             | Function         |
+| ------------------------------------ | ---------------- |
+| `Ctrl+Shift+P` → "Open Kanban Board" | Open Kanban View |
+
+## 🔧 Configuration Options
+
+The extension currently uses default configurations. Future versions will support more customization options.
