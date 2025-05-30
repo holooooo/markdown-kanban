@@ -4,7 +4,7 @@
 A powerful VS Code extension that transforms Markdown files into interactive Kanban boards, supporting task management, drag-and-drop operations, and rich task attributes.
 
 ## ✨ Features
-![alt text](imgs/image.png)
+![alt text](./imgs/image.png)
 ### 📋 Basic Features
 - **Markdown Parsing**: Automatically parses task lists from Markdown files.
 - **Kanban View**: Displays tasks in a Kanban board format with multi-column layout.

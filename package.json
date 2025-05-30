@@ -1,8 +1,9 @@
 {
   "name": "markdown-kanban",
   "displayName": "Markdown Kanban",
-  "description": "将Markdown文件转换为交互式看板视图，支持任务管理、过滤排序、拖拽操作和丰富的任务属性",
-  "version": "1.2.0",
+  "description": "Kanban board for Markdown files",
+  "publisher": "holooooo",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -19,10 +20,15 @@
     "看板",
     "任务管理"
   ],
+  "icon": "./imgs/logo.png",
   "activationEvents": [
     "onLanguage:markdown"
   ],
   "main": "./dist/extension.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/holooooo/markdown-kanban"
+  },
   "contributes": {
     "commands": [
       {
