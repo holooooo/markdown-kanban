@@ -61,9 +61,9 @@ export function activate(context: vscode.ExtensionContext) {
 			// 在中间区域创建或显示看板面板
 			KanbanWebviewPanel.createOrShow(context.extensionUri, document);
 
-			vscode.window.showInformationMessage(`看板已从以下文件加载: ${document.fileName}`);
+			vscode.window.showInformationMessage(`load kanban from: ${document.fileName}`);
 		} catch (error) {
-			vscode.window.showErrorMessage(`打开看板失败: ${error}`);
+			vscode.window.showErrorMessage(`failed open kanban: ${error}`);
 		}
 	});
 

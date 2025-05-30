@@ -38,27 +38,11 @@
       }
     ],
     "menus": {
-      "explorer/context": [
-        {
-          "command": "markdown-kanban.openKanban",
-          "when": "resourceExtname == .md",
-          "group": "navigation"
-        }
-      ],
       "editor/title": [
         {
           "command": "markdown-kanban.openKanban",
           "when": "resourceExtname == .md && markdownKanbanActive",
           "group": "navigation"
-        }
-      ]
-    },
-    "views": {
-      "explorer": [
-        {
-          "id": "markdownKanbanView",
-          "name": "Kanban Board",
-          "when": "markdownKanbanActive"
         }
       ]
     }

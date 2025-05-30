@@ -92,6 +92,9 @@ export class KanbanWebviewPanel {
                     case 'addColumn':
                         this.addColumn(message.title);
                         break;
+                    case 'moveColumn':
+                        this.moveColumn(message.fromIndex, message.toIndex);
+                        break;
                     case 'toggleTask':
                         this.toggleTaskExpansion(message.taskId);
                         break;
@@ -255,6 +258,19 @@ export class KanbanWebviewPanel {
         };
 
         this._board.columns.push(newColumn);
+        this.saveToMarkdown();
+        this._update();
+    }
+
+    private moveColumn(fromIndex: number, toIndex: number) {
+        if (!this._board || fromIndex === toIndex) {
+            return;
+        }
+
+        const columns = this._board.columns;
+        const column = columns.splice(fromIndex, 1)[0];
+        columns.splice(toIndex, 0, column);
+
         this.saveToMarkdown();
         this._update();
     }
@@ -822,7 +838,6 @@ export class KanbanWebviewPanel {
         /* Drag styles */
         .task-item.dragging {
             opacity: 0.5;
-            transform: rotate(5deg);
         }
 
         .kanban-column.drag-over {
@@ -948,6 +963,24 @@ export class KanbanWebviewPanel {
         </div>
     </div>
 
+    <!-- Input modal -->
+    <div id="input-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="input-modal-title">Enter Value</h3>
+                <button class="close-btn" onclick="closeInputModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="input-modal-message">Please enter a value:</p>
+                <input type="text" id="input-modal-field" class="form-input" placeholder="Enter value..." />
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeInputModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" id="input-ok-btn">OK</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const vscode = acquireVsCodeApi();
         let currentBoard = null;
@@ -1024,6 +1057,9 @@ export class KanbanWebviewPanel {
             addColumnBtn.textContent = '+ Add Column';
             addColumnBtn.onclick = () => addColumn();
             boardElement.appendChild(addColumnBtn);
+
+            // Setup column drag and drop
+            setupColumnDragAndDrop();
         }
 
         function createColumnElement(column) {
@@ -1036,7 +1072,7 @@ export class KanbanWebviewPanel {
             let sortedTasks = sortTasks(filteredTasks);
 
             columnDiv.innerHTML = \`
-                <div class="column-header">
+                <div class="column-header" draggable="true">
                     <div>
                         <h3 class="column-title">\${column.title}</h3>
                     </div>
@@ -1197,9 +1233,34 @@ export class KanbanWebviewPanel {
                 const taskId = e.dataTransfer.getData('text/plain');
                 const fromColumnId = e.dataTransfer.getData('application/column-id');
 
-                if (taskId && fromColumnId && fromColumnId !== columnId) {
+                if (taskId && fromColumnId) {
+                    // Calculate the correct drop index based on mouse position
                     const tasks = Array.from(tasksContainer.children);
-                    const dropIndex = tasks.length;
+                    let dropIndex = tasks.length;
+
+                    // Find the task element that should be after the dropped task
+                    for (let i = 0; i < tasks.length; i++) {
+                        const taskElement = tasks[i];
+                        const rect = taskElement.getBoundingClientRect();
+                        const taskCenter = rect.top + rect.height / 2;
+
+                        if (e.clientY < taskCenter) {
+                            dropIndex = i;
+                            break;
+                        }
+                    }
+
+                    // If dragging within the same column, adjust the index
+                    if (fromColumnId === columnId) {
+                        const draggedTaskElement = tasksContainer.querySelector('[data-task-id="' + taskId + '"]');
+                        if (draggedTaskElement) {
+                            const currentIndex = Array.from(tasks).indexOf(draggedTaskElement);
+                            // If dropping after the current position, decrease the index by 1
+                            if (dropIndex > currentIndex) {
+                                dropIndex--;
+                            }
+                        }
+                    }
 
                     vscode.postMessage({
                         type: 'moveTask',
@@ -1214,6 +1275,7 @@ export class KanbanWebviewPanel {
             // Add drag events for tasks
             tasksContainer.addEventListener('dragstart', (e) => {
                 if (e.target.classList.contains('task-item')) {
+                    e.stopPropagation(); // 防止触发列拖拽
                     e.dataTransfer.setData('text/plain', e.target.dataset.taskId);
                     e.dataTransfer.setData('application/column-id', e.target.dataset.columnId);
                     e.target.classList.add('dragging');
@@ -1224,6 +1286,66 @@ export class KanbanWebviewPanel {
                 if (e.target.classList.contains('task-item')) {
                     e.target.classList.remove('dragging');
                 }
+            });
+        }
+
+        // Setup column drag and drop
+        function setupColumnDragAndDrop() {
+            const boardElement = document.getElementById('kanban-board');
+            const columns = boardElement.querySelectorAll('.kanban-column');
+            let draggedColumnIndex = -1;
+
+            columns.forEach((column, index) => {
+                const columnHeader = column.querySelector('.column-header');
+
+                // Column drag start - listen on header
+                columnHeader.addEventListener('dragstart', (e) => {
+                    draggedColumnIndex = index;
+                    e.dataTransfer.setData('text/plain', index.toString());
+                    e.dataTransfer.effectAllowed = 'move';
+                    column.classList.add('column-dragging');
+                });
+
+                // Column drag end - listen on header
+                columnHeader.addEventListener('dragend', (e) => {
+                    column.classList.remove('column-dragging');
+                    draggedColumnIndex = -1;
+                    // Remove drag-over class from all columns
+                    columns.forEach(col => col.classList.remove('drag-over'));
+                });
+
+                // Column drag over - listen on column for drop zone
+                column.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    if (draggedColumnIndex !== -1 && draggedColumnIndex !== index) {
+                        column.classList.add('drag-over');
+                    }
+                });
+
+                // Column drag leave
+                column.addEventListener('dragleave', (e) => {
+                    if (!column.contains(e.relatedTarget)) {
+                        column.classList.remove('drag-over');
+                    }
+                });
+
+                // Column drop - listen on column
+                column.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    column.classList.remove('drag-over');
+
+                    const fromIndex = draggedColumnIndex;
+                    const toIndex = index;
+
+                    if (fromIndex !== -1 && fromIndex !== toIndex) {
+                        vscode.postMessage({
+                            type: 'moveColumn',
+                            fromIndex: fromIndex,
+                            toIndex: toIndex
+                        });
+                    }
+                });
             });
         }
 
@@ -1307,14 +1429,54 @@ export class KanbanWebviewPanel {
             document.getElementById('confirm-modal').style.display = 'none';
         }
 
+        function showInputModal(title, message, placeholder, onConfirm) {
+            document.getElementById('input-modal-title').textContent = title;
+            document.getElementById('input-modal-message').textContent = message;
+            const inputField = document.getElementById('input-modal-field');
+            inputField.placeholder = placeholder;
+            inputField.value = '';
+            document.getElementById('input-modal').style.display = 'block';
+
+            // Focus on input field
+            setTimeout(() => inputField.focus(), 100);
+
+            const confirmBtn = document.getElementById('input-ok-btn');
+            confirmBtn.onclick = () => {
+                const value = inputField.value.trim();
+                if (value) {
+                    closeInputModal();
+                    onConfirm(value);
+                }
+            };
+
+            // Handle Enter key
+            inputField.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    const value = inputField.value.trim();
+                    if (value) {
+                        closeInputModal();
+                        onConfirm(value);
+                    }
+                }
+            };
+        }
+
+        function closeInputModal() {
+            document.getElementById('input-modal').style.display = 'none';
+        }
+
         function addColumn() {
-            const title = prompt('Please enter column title:');
-            if (title && title.trim()) {
-                vscode.postMessage({
-                    type: 'addColumn',
-                    title: title.trim()
-                });
-            }
+            showInputModal(
+                'Add Column',
+                'Please enter column title:',
+                'Enter column title...',
+                (title) => {
+                    vscode.postMessage({
+                        type: 'addColumn',
+                        title: title
+                    });
+                }
+            );
         }
 
         // Tag input handling
@@ -1437,6 +1599,13 @@ export class KanbanWebviewPanel {
         document.getElementById('confirm-modal').addEventListener('click', (e) => {
             if (e.target.id === 'confirm-modal') {
                 closeConfirmModal();
+            }
+        });
+
+        // Close input modal when clicking outside
+        document.getElementById('input-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'input-modal') {
+                closeInputModal();
             }
         });
     </script>
