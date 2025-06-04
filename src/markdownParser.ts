@@ -30,7 +30,8 @@ export class MarkdownKanbanParser {
   }
 
   static parseMarkdown(content: string): KanbanBoard {
-    const lines = content.split('\n');
+    // 处理不同的行结束符（Windows: \r\n, Unix: \n, Mac: \r）
+    const lines = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
     const board: KanbanBoard = {
       title: '',
       columns: []
