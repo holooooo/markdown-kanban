@@ -16,7 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
 	if (vscode.window.registerWebviewPanelSerializer) {
 		vscode.window.registerWebviewPanelSerializer(KanbanWebviewPanel.viewType, {
 			async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
-				KanbanWebviewPanel.revive(webviewPanel, context.extensionUri);
+				KanbanWebviewPanel.revive(webviewPanel, context.extensionUri, context);
 			}
 		});
 	}
@@ -59,7 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
 			const document = await vscode.workspace.openTextDocument(targetUri);
 
 			// 在中间区域创建或显示看板面板
-			KanbanWebviewPanel.createOrShow(context.extensionUri, document);
+			KanbanWebviewPanel.createOrShow(context.extensionUri, context, document);
 
 			vscode.window.showInformationMessage(`load kanban from: ${document.fileName}`);
 		} catch (error) {
