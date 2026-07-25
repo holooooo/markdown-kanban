@@ -1,3 +1,18 @@
+## [2.0.0] (2026-07-25)
+
+### Features
+
+* **feature:** Launch Codex, Claude Code, or another configured terminal command from a task card
+* **feature:** Store task-terminal environment variables in VS Code SecretStorage and require workspace trust before launch
+* **feature:** Switch between todo and Kanban Markdown files from the board toolbar
+* **feature:** Add a reusable Markdown Kanban agent skill with an in-app install command
+* **feature:** Redesign the board, task editor, filters, archive, and settings UI
+
+### Fixes
+
+* **fix:** Preserve the selected board when VS Code restores the webview panel
+* **fix:** Avoid file-listener reloads while the board is saving its own changes
+
 ## [1.3.3] (2026-07-25)
 
 ### Fixes

@@ -34,11 +34,26 @@ Supports a structured task format for better readability and organization:
 - **Clear Filters**: One-click to clear all filtering and sorting conditions.
 
 ### 🖥️ UI Features
-- **Dual View Mode**:
-  - Sidebar View: Compact Kanban display.
-  - Main Panel: Full Kanban editing interface.
+- **Editor Panel**: Full Kanban editing interface that follows the active Markdown file when file switching is enabled.
 - **Modern UI**: Adheres to VS Code design guidelines and supports theme switching.
 - **Responsive Design**: Adapts to different screen sizes.
+- **Task Terminals**: Start Codex, Claude Code, or another configured binary directly from a task card.
+- **Multiple Todo Boards**: Switch between `*.todo.md`, `*.kanban.md`, and `TODO.md` files in one workspace.
+- **Agent Skill**: Copy the GitHub-based install command from the board toolbar.
+
+### Task Terminal Settings
+
+Use **Terminal settings** in the board toolbar to configure the executable, one startup argument per line, environment variables, and the task prompt template. Environment variables are stored in VS Code SecretStorage for the current workspace. Task terminals only start in trusted workspaces.
+
+### Markdown Kanban Skill
+
+The reusable skill lives at `skills/markdown-kanban`. Install it from GitHub with:
+
+```bash
+npx skills add https://github.com/holooooo/markdown-kanban --skill markdown-kanban
+```
+
+The skill searches for multiple todo boards before editing and uses the same Markdown format as this extension.
 
 ## 🚀 Quick Start
 
@@ -94,7 +109,7 @@ Supports a structured task format for better readability and organization:
 #### 2. Open Kanban View
 - **Method 1**: Right-click on the Markdown file → Select "Kanban"
 - **Method 2**: Use the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`) → Type "Open Kanban Board"
-- **Method 3**: Check the Kanban view in the sidebar.
+- **Method 3**: Use the board picker in the Kanban toolbar to switch between todo files.
 
 #### 3. Use Filtering and Sorting
 - **Tag Filtering**: Enter tag names in the top filter box (e.g., design,ui).
@@ -115,4 +130,3 @@ Supports a structured task format for better readability and organization:
 
 #### 6. Enable or Disable File Switching
 - **Change the setting**: Use the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`) → Type "Enable/Disable File Switcher"
-

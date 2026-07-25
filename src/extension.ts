@@ -8,6 +8,7 @@ import { KanbanWebviewPanel } from './kanbanWebviewPanel';
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 	let fileListenerEnabled = true;
+	let documentChangeTimer: NodeJS.Timeout | undefined;
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Markdown Kanban extension is now active!');
@@ -15,8 +16,16 @@ export function activate(context: vscode.ExtensionContext) {
 	// 注册webview panel序列化器（用于恢复面板状态）
 	if (vscode.window.registerWebviewPanelSerializer) {
 		vscode.window.registerWebviewPanelSerializer(KanbanWebviewPanel.viewType, {
-			async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
-				KanbanWebviewPanel.revive(webviewPanel, context.extensionUri, context);
+			async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: { documentUri?: string } | undefined) {
+				let document: vscode.TextDocument | undefined;
+				if (state?.documentUri) {
+					try {
+						document = await vscode.workspace.openTextDocument(vscode.Uri.parse(state.documentUri));
+					} catch {
+						// The board may have been moved or deleted while VS Code was closed.
+					}
+				}
+				KanbanWebviewPanel.revive(webviewPanel, context.extensionUri, context, document);
 			}
 		});
 	}
@@ -69,18 +78,20 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const disableFileListenerCommand = vscode.commands.registerCommand('markdown-kanban.disableFileListener', async () => {
 		fileListenerEnabled = !fileListenerEnabled;
+		vscode.window.showInformationMessage(`Markdown Kanban file switching ${fileListenerEnabled ? 'enabled' : 'disabled'}.`);
 	});
 
 	// 监听文档变化，自动更新看板（实时同步）
 	const documentChangeListener = vscode.workspace.onDidChangeTextDocument((event) => {
-		if (event.document.languageId === 'markdown' && fileListenerEnabled) {
-			// 延迟更新，避免频繁刷新
-			setTimeout(() => {
-				// 更新面板中的看板
-				if (KanbanWebviewPanel.currentPanel) {
-					KanbanWebviewPanel.currentPanel.loadMarkdownFile(event.document);
-				}
-			}, 500);
+		const panel = KanbanWebviewPanel.currentPanel;
+		if (
+			event.document.languageId === 'markdown' &&
+			fileListenerEnabled &&
+			panel?.isDocument(event.document.uri) &&
+			!panel.isSaving
+		) {
+			if (documentChangeTimer) clearTimeout(documentChangeTimer);
+			documentChangeTimer = setTimeout(() => panel.handleDocumentChange(event.document), 300);
 		}
 	});
 
@@ -103,6 +114,7 @@ export function activate(context: vscode.ExtensionContext) {
 		disableFileListenerCommand,
 		documentChangeListener,
 		activeEditorChangeListener,
+		{ dispose: () => documentChangeTimer && clearTimeout(documentChangeTimer) },
 	);
 
 	// 如果当前有活动的markdown编辑器，自动激活看板

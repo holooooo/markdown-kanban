@@ -4,6 +4,7 @@ import * as assert from 'assert';
 // as well as import your extension to test it
 import * as vscode from 'vscode';
 import { MarkdownKanbanParser } from '../markdownParser';
+import { normalizeTerminalSettings, renderTaskPrompt } from '../terminalSettings';
 
 suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
@@ -60,5 +61,37 @@ suite('Extension Test Suite', () => {
 		assert.strictEqual(task.dueDate, '2026-08-02');
 		assert.deepStrictEqual(task.steps?.map(step => step.text), ['First', 'Second']);
 		assert.deepStrictEqual(task.steps?.map(step => step.completed), [false, true]);
+	});
+
+	test('normalizes terminal settings without accepting invalid environment names', () => {
+		const settings = normalizeTerminalSettings({
+			binary: ' claude ',
+			args: ['--model', 'sonnet'],
+			env: { API_KEY: 'secret', 'BAD-NAME': 'ignored', EMPTY: '' },
+			appendTaskPrompt: false,
+			promptTemplate: 'Task: {title}'
+		});
+
+		assert.strictEqual(settings.binary, 'claude');
+		assert.deepStrictEqual(settings.args, ['--model', 'sonnet']);
+		assert.deepStrictEqual(settings.env, { API_KEY: 'secret', EMPTY: '' });
+		assert.strictEqual(settings.appendTaskPrompt, false);
+	});
+
+	test('renders task prompts with board-relative context', () => {
+		const prompt = renderTaskPrompt(
+			'{title}|{description}|{tags}|{dueDate}|{relativeFile}',
+			{
+				id: 'task-1',
+				title: 'Ship export',
+				description: 'Add JSON output',
+				tags: ['cli', 'export'],
+				dueDate: '2026-08-15'
+			},
+			'/workspace/.todo/cli.todo.md',
+			'/workspace'
+		);
+
+		assert.strictEqual(prompt, 'Ship export|Add JSON output|cli, export|2026-08-15|.todo/cli.todo.md');
 	});
 });

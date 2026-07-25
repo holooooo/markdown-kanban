@@ -1,1190 +1,443 @@
-* {
-    box-sizing: border-box;
+:root {
+    color-scheme: light dark;
+    --radius: 6px;
+    --control-height: 30px;
 }
 
+* { box-sizing: border-box; }
+
 body {
-    font-family: var(--vscode-font-family);
-    color: var(--vscode-foreground);
-    background-color: var(--vscode-editor-background);
     margin: 0;
-    padding: 20px;
-    overflow-x: auto;
+    min-width: 260px;
+    color: var(--vscode-foreground);
+    background: var(--vscode-editor-background);
+    font-family: var(--vscode-font-family);
+    font-size: var(--vscode-font-size);
 }
+
+button,
+input,
+select,
+textarea { font: inherit; }
+
+button { white-space: nowrap; }
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: 2px;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.app-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 52px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    background: var(--vscode-editor-background);
+}
+
+.board-picker {
+    display: grid;
+    min-width: 0;
+    max-width: min(42vw, 460px);
+    padding: 4px 8px;
+    text-align: left;
+    color: var(--vscode-foreground);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    cursor: pointer;
+}
+
+.board-picker:hover { background: var(--vscode-toolbar-hoverBackground); }
+.board-name { overflow: hidden; font-weight: 600; text-overflow: ellipsis; }
+.board-path { overflow: hidden; color: var(--vscode-descriptionForeground); font-size: 11px; text-overflow: ellipsis; }
+
+.toolbar-actions,
+.filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.toolbar-btn,
+.icon-btn {
+    min-height: var(--control-height);
+    padding: 4px 9px;
+    color: var(--vscode-button-secondaryForeground);
+    background: var(--vscode-button-secondaryBackground);
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    cursor: pointer;
+}
+
+.toolbar-btn:hover,
+.icon-btn:hover { background: var(--vscode-button-secondaryHoverBackground); }
+.toolbar-btn:active,
+.icon-btn:active,
+.btn:active,
+.action-btn:active,
+.terminal-task-btn:active { transform: translateY(1px); }
 
 .kanban-header {
     display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    gap: 20px;
-    padding: 16px 20px;
-    background-color: var(--vscode-sideBar-background);
+    align-items: end;
+    gap: 12px;
+    padding: 10px 12px;
     border-bottom: 1px solid var(--vscode-panel-border);
-    flex-wrap: wrap;
-    align-items: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background: var(--vscode-sideBar-background);
 }
 
-.kanban-header.visible {
-    display: flex;
-}
+.kanban-header.visible { display: flex; }
+.filter-field { display: grid; gap: 4px; min-width: 150px; }
+.filter-label { color: var(--vscode-descriptionForeground); font-size: 11px; font-weight: 600; }
 
-body.filters-visible {
-    padding-top: 90px;
-}
-
-@media (max-width: 768px) {
-    .kanban-header {
-        padding: 12px 16px;
-    }
-
-    body.filters-visible {
-        padding-top: 110px;
-    }
-
-    .filter-section {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px;
-    }
-
-    .filter-input, .sort-select {
-        min-width: auto;
-        width: 100%;
-    }
-}
-
-.filter-section {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.filter-label {
-    font-weight: 500;
-    font-size: 14px;
-}
-
-.filter-input, .sort-select {
-    padding: 6px 10px;
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 4px;
-    background-color: var(--vscode-input-background);
+.filter-input,
+.sort-select,
+.form-input,
+.form-textarea,
+.form-select,
+.steps-input {
+    width: 100%;
+    min-height: var(--control-height);
+    padding: 6px 8px;
     color: var(--vscode-input-foreground);
-    font-size: 12px;
-    min-width: 120px;
+    background: var(--vscode-input-background);
+    border: 1px solid var(--vscode-input-border, transparent);
+    border-radius: var(--radius);
 }
 
-.filter-input:focus, .sort-select:focus {
-    outline: none;
-    border-color: var(--vscode-focusBorder);
-}
+.filter-input::placeholder,
+.form-input::placeholder,
+.form-textarea::placeholder,
+.steps-input::placeholder { color: var(--vscode-input-placeholderForeground); }
 
-.clear-filters-btn {
-    background: var(--vscode-button-secondaryBackground);
-    color: var(--vscode-button-secondaryForeground);
-    border: none;
-    border-radius: 4px;
-    padding: 6px 12px;
-    font-size: 12px;
-    cursor: pointer;
-}
+.filter-actions { margin-left: auto; }
 
-.column-controls {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-.toggle-columns-btn {
-    background: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
-    border: none;
-    border-radius: 4px;
-    padding: 6px 12px;
-    font-size: 12px;
-    cursor: pointer;
-}
-
-.board-controls {
-    display: flex;
-    flex-direction: row;
-    gap: 12px;
-    align-items: center;
-    margin-bottom: 20px;
-}
+#kanban-container { padding: 12px; overflow-x: auto; }
 
 .kanban-board {
     display: flex;
-    gap: 20px;
-    min-height: calc(100vh - 150px);
-    padding-bottom: 20px;
+    align-items: flex-start;
+    gap: 12px;
+    min-height: calc(100vh - 76px);
+    min-height: calc(100dvh - 76px);
+    padding-bottom: 12px;
 }
 
 .kanban-column {
-    background-color: var(--vscode-sideBar-background);
-    border-radius: 8px;
-    padding: 16px;
-    min-width: 300px;
-    max-width: 350px;
-    flex-shrink: 0;
+    flex: 0 0 clamp(270px, 28vw, 340px);
+    min-width: 0;
+    padding: 10px;
+    background: var(--vscode-sideBar-background);
     border: 1px solid var(--vscode-panel-border);
-    position: relative;
-}
-
-.kanban-column.hidden {
-    display: none;
-}
-
-.kanban-column.dragging {
-    opacity: 0.5;
+    border-radius: var(--radius);
 }
 
 .column-header {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid var(--vscode-panel-border);
-    cursor: move;
-}
-
-.column-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--vscode-foreground);
-}
-
-.column-controls-menu {
-    display: flex;
-    gap: 4px;
-    align-items: center;
-}
-
-.column-title-section {
-    display: flex;
-    align-items: center;
     gap: 8px;
-}
-
-.task-count {
-    background-color: var(--vscode-badge-background);
-    color: var(--vscode-badge-foreground);
-    border-radius: 12px;
-    padding: 2px 8px;
-    font-size: 12px;
-    font-weight: 500;
-}
-
-.column-menu-btn {
-    background: none;
-    border: none;
-    color: var(--vscode-foreground);
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 3px;
-    font-size: 14px;
-}
-
-.column-menu-btn:hover {
-    background: var(--vscode-button-hoverBackground);
-}
-
-.archive-toggle-btn {
-    background: none;
-    border: none;
-    color: var(--vscode-foreground);
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 3px;
-    font-size: 14px;
-    opacity: 0.7;
-}
-
-.archive-toggle-btn:hover {
-    background: var(--vscode-button-hoverBackground);
-    opacity: 1;
-}
-
-.kanban-column.archived {
-    opacity: 0.7;
-    border-color: var(--vscode-descriptionForeground);
-}
-
-.kanban-column.archived .column-title::after {
-    content: '';
-    margin-left: 8px;
-    font-size: 12px;
-    color: var(--vscode-descriptionForeground);
-}
-
-.kanban-column.collapsed .tasks-container,
-.kanban-column.collapsed .add-task-btn {
-    display: none;
-}
-
-/* 统一归档列样式 */
-.unified-archive {
-    min-width: 250px;
-    max-width: 300px;
-    background-color: var(--vscode-sideBar-background);
-    border: 1px solid var(--vscode-descriptionForeground);
-}
-
-.unified-archive.collapsed {
-    min-height: auto;
-    height: auto;
-}
-
-.unified-archive.collapsed .archive-content {
-    display: none;
-}
-
-.archive-expand-btn {
-    background: none;
-    border: none;
-    color: var(--vscode-foreground);
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 3px;
-    font-size: 12px;
-    margin-left: 8px;
-}
-
-.archive-expand-btn:hover {
-    background: var(--vscode-button-hoverBackground);
-}
-
-.expand-icon {
-    transition: transform 0.2s ease;
-}
-
-.archive-content {
-    max-height: 400px;
-    overflow-y: auto;
-    padding: 8px;
-}
-
-.archive-section {
-    margin-bottom: 16px;
-    border-bottom: 1px solid var(--vscode-panel-border);
-    padding-bottom: 8px;
-}
-
-.archive-section:last-child {
-    border-bottom: none;
-}
-
-.archive-section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    min-height: 36px;
     margin-bottom: 8px;
-    padding: 4px 0;
+    cursor: grab;
 }
 
-.archive-section-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.archive-section-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--vscode-descriptionForeground);
-    margin: 0;
-}
-
-.archive-section-count {
-    background-color: var(--vscode-badge-background);
+.column-header:active { cursor: grabbing; }
+.column-title-section { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.column-title { margin: 0; overflow: hidden; font-size: 13px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.task-count,
+.archive-section-count,
+.task-steps-progress {
+    padding: 1px 6px;
     color: var(--vscode-badge-foreground);
-    border-radius: 10px;
-    padding: 2px 6px;
+    background: var(--vscode-badge-background);
+    border-radius: 999px;
     font-size: 10px;
-    font-weight: 500;
+    font-variant-numeric: tabular-nums;
 }
 
-.archive-tasks {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.archive-task-item {
-    background-color: var(--vscode-editor-background);
-    border: 1px solid var(--vscode-panel-border);
-    border-radius: 4px;
-    padding: 8px;
-    font-size: 12px;
-    opacity: 0.8;
-}
-
-.archive-task-item:hover {
-    opacity: 1;
-    border-color: var(--vscode-focusBorder);
-}
-
-.archive-task-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 4px;
-}
-
-.archive-task-title {
-    font-weight: 500;
-    color: var(--vscode-foreground);
-    flex: 1;
-}
-
-.archive-task-deadline {
-    font-size: 10px;
-    margin-bottom: 4px;
-    padding: 2px 4px;
-    border-radius: 2px;
-}
-
-.archive-task-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2px;
-}
-
-.archive-tag {
-    background-color: var(--vscode-badge-background);
-    color: var(--vscode-badge-foreground);
-    border-radius: 8px;
-    padding: 1px 4px;
-    font-size: 9px;
-    font-weight: 500;
-}
-
-.archive-empty {
-    text-align: center;
-    color: var(--vscode-descriptionForeground);
-    font-style: italic;
-    padding: 20px;
-}
-
-.unarchive-btn {
-    background: none;
-    border: none;
-    color: var(--vscode-foreground);
-    cursor: pointer;
-    padding: 4px 6px;
-    border-radius: 3px;
-    font-size: 14px;
-    opacity: 0.7;
-    transition: opacity 0.2s ease;
-}
-
-.unarchive-btn:hover {
-    background: var(--vscode-button-hoverBackground);
-    opacity: 1;
-}
-
-.archive-empty-section {
-    text-align: center;
-    color: var(--vscode-descriptionForeground);
-    font-style: italic;
-    font-size: 11px;
-    padding: 8px;
-    margin: 4px 0;
-    background-color: var(--vscode-input-background);
-    border-radius: 4px;
-    border: 1px dashed var(--vscode-panel-border);
-}
-
-.tasks-container {
-    min-height: 100px;
-    max-height: calc(100vh - 280px);
-    overflow-y: auto;
-}
+.icon-btn { min-height: 26px; padding: 2px 7px; color: var(--vscode-descriptionForeground); background: transparent; font-size: 11px; }
+.tasks-container { display: grid; gap: 8px; min-height: 16px; }
 
 .task-item {
-    background-color: var(--vscode-editor-background);
-    border: 1px solid var(--vscode-panel-border);
-    border-radius: 6px;
-    padding: 12px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
     position: relative;
+    min-width: 0;
+    padding: 10px;
+    color: var(--vscode-foreground);
+    background: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: var(--radius);
+    cursor: pointer;
 }
 
-.task-item:hover {
-    border-color: var(--vscode-focusBorder);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
+.task-item:hover,
+.task-item:focus-within { border-color: var(--vscode-focusBorder); }
+.task-item.dragging,
+.kanban-column.column-dragging { opacity: .55; }
+.kanban-column.drag-over { background: var(--vscode-list-hoverBackground); }
 
-.task-item.expanded {
-    border-color: var(--vscode-focusBorder);
-}
-
-.task-item.filtered-out {
-    display: none;
-}
-
-.task-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 8px;
-    margin-bottom: 8px;
-}
-
-.task-drag-handle {
+.task-header { display: flex; align-items: start; gap: 7px; min-width: 0; }
+.task-drag-handle,
+.step-drag-handle {
+    flex: 0 0 auto;
+    padding: 1px 2px;
     color: var(--vscode-descriptionForeground);
+    font-family: var(--vscode-editor-font-family);
     cursor: grab;
-    font-size: 14px;
-    padding: 4px 2px;
     user-select: none;
-    opacity: 0.4;
-    transition: opacity 0.2s;
-    flex-shrink: 0;
-    line-height: 1;
-    order: -1; /* 确保拖拽手柄在最左边 */
 }
 
-.task-item:hover .task-drag-handle {
-    opacity: 0.8;
-}
+.task-title { flex: 1; min-width: 0; overflow-wrap: anywhere; line-height: 1.35; font-size: 13px; font-weight: 600; }
+.task-meta { display: flex; align-items: center; gap: 5px; flex: 0 0 auto; }
+.task-priority { width: 8px; height: 8px; border-radius: 50%; }
+.priority-high { background: var(--vscode-testing-iconFailed, #d73a49); }
+.priority-medium { background: var(--vscode-editorWarning-foreground, #b08800); }
+.priority-low { background: var(--vscode-testing-iconPassed, #238636); }
 
-.task-drag-handle:hover {
-    opacity: 1;
-    color: var(--vscode-foreground);
-}
-
-.task-drag-handle:active {
-    cursor: grabbing;
-}
-
-.task-title {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--vscode-foreground);
-    flex: 1;
-    line-height: 1.4;
-    word-break: break-word;
-}
-
-.task-meta {
-    display: flex;
-    flex-direction: row;
-    gap: 6px;
-    align-items: center;
-    flex-shrink: 0;
-}
-
-.task-priority {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-
-.priority-high { background-color: #ff4444; }
-.priority-medium { background-color: #ffaa00; }
-.priority-low { background-color: #44ff44; }
-
-.task-workload {
-    padding: 2px 6px;
-    border-radius: 3px;
+.terminal-task-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 26px;
+    padding: 0;
+    color: var(--vscode-button-foreground);
+    background: var(--vscode-button-background);
+    border: 0;
+    border-radius: var(--radius);
+    font-family: var(--vscode-editor-font-family);
     font-size: 11px;
-    font-weight: 500;
+    cursor: pointer;
 }
 
-.workload-easy { 
-    background-color: #28a745; 
-    color: white; 
-}
-
-.workload-normal { 
-    background-color: #ffc107; 
-    color: black; 
-}
-
-.workload-hard { 
-    background-color: #fd7e14; 
-    color: white; 
-}
-
-.workload-extreme { 
-    background-color: #dc3545; 
-    color: white; 
-}
-
+.terminal-task-btn:hover { background: var(--vscode-button-hoverBackground); }
+.task-tags-row { display: flex; align-items: start; justify-content: space-between; gap: 6px; margin-top: 8px; }
+.task-tags { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+.task-tag,
 .task-deadline {
-    font-size: 11px;
-    padding: 2px 6px;
+    max-width: 100%;
+    padding: 2px 5px;
+    overflow: hidden;
+    color: var(--vscode-badge-foreground);
+    background: var(--vscode-badge-background);
     border-radius: 3px;
-    font-weight: 500;
+    font-size: 10px;
+    text-overflow: ellipsis;
 }
 
-.deadline-overdue {
-    background-color: #ff4444;
-    color: white;
-}
+.task-deadline { flex: 0 0 auto; }
+.deadline-overdue { color: var(--vscode-inputValidation-errorForeground, #fff); background: var(--vscode-inputValidation-errorBackground, #a1260d); }
+.deadline-urgent,
+.deadline-upcoming { color: var(--vscode-inputValidation-warningForeground, #1f1f1f); background: var(--vscode-inputValidation-warningBackground, #cca700); }
 
-.deadline-urgent {
-    background-color: #ffaa00;
-    color: white;
-}
+.task-details { display: none; margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--vscode-panel-border); }
+.task-item.expanded .task-details { display: block; }
+.task-description { margin-bottom: 8px; color: var(--vscode-descriptionForeground); font-size: 12px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+.task-steps { display: grid; gap: 5px; }
+.task-steps-header { font-size: 11px; font-weight: 600; }
+.task-steps-list,
+.steps-list { display: grid; gap: 5px; }
+.task-step-item,
+.step-item { display: flex; align-items: center; gap: 6px; min-width: 0; padding: 3px 0; }
+.task-step-text,
+.step-text { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 11px; }
+.completed { color: var(--vscode-disabledForeground); text-decoration: line-through; }
 
-.deadline-upcoming {
-    background-color: #44ff44;
-    color: white;
-}
-
-.deadline-normal {
-    background-color: var(--vscode-button-secondaryBackground);
-    color: var(--vscode-button-secondaryForeground);
-}
-
-.task-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    margin-top: 4px;
-}
-
-.task-tags-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 8px;
-    gap: 8px;
-}
-
-.task-tags-row .task-tags {
-    margin-top: 0;
-    flex: 1;
-}
-
-.task-tag {
-    background-color: #e3f2fd;
-    color: #1976d2;
+.task-actions { display: flex; justify-content: flex-end; gap: 4px; margin-top: 8px; }
+.action-btn {
+    min-height: 24px;
     padding: 2px 6px;
+    color: var(--vscode-descriptionForeground);
+    background: transparent;
+    border: 0;
     border-radius: 4px;
     font-size: 11px;
-    font-weight: 500;
-}
-
-.task-tag.workload-tag {
-    font-weight: 600;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.task-tag.workload-tag.workload-easy {
-    background-color: #28a745;
-    color: white;
-}
-
-.task-tag.workload-tag.workload-normal {
-    background-color: #ffc107;
-    color: black;
-}
-
-.task-tag.workload-tag.workload-hard {
-    background-color: #fd7e14;
-    color: white;
-}
-
-.task-tag.workload-tag.workload-extreme {
-    background-color: #dc3545;
-    color: white;
-}
-
-.task-details {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--vscode-panel-border);
-    display: none;
-}
-
-.task-item.expanded .task-details {
-    display: block;
-}
-
-.task-description {
-    color: var(--vscode-descriptionForeground);
-    font-size: 13px;
-    line-height: 1.4;
-    margin-bottom: 8px;
-    white-space: pre-wrap;
-}
-
-.task-info {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    font-size: 12px;
-}
-
-.task-info-item {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    color: var(--vscode-descriptionForeground);
-}
-
-.task-info-label {
-    font-weight: 500;
-}
-
-.task-actions {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    display: none;
-    gap: 4px;
-}
-
-.task-item:hover .task-actions {
-    display: flex;
-}
-
-.action-btn {
-    background: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
-    border: none;
-    border-radius: 3px;
-    padding: 4px 6px;
-    font-size: 11px;
     cursor: pointer;
-    transition: background-color 0.2s;
 }
 
-.action-btn:hover {
-    background: var(--vscode-button-hoverBackground);
-}
-
-.action-btn.delete {
-    background: var(--vscode-errorForeground);
-    color: white;
-}
+.action-btn:hover { color: var(--vscode-foreground); background: var(--vscode-toolbar-hoverBackground); }
+.danger-text:hover { color: var(--vscode-errorForeground); }
 
 .add-task-btn {
     width: 100%;
-    background: var(--vscode-button-secondaryBackground);
-    color: var(--vscode-button-secondaryForeground);
-    border: 1px dashed var(--vscode-panel-border);
-    border-radius: 6px;
-    padding: 12px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    min-height: 30px;
     margin-top: 8px;
-}
-
-.add-task-btn:hover {
-    background: var(--vscode-button-secondaryHoverBackground);
-    border-color: var(--vscode-focusBorder);
-}
-
-.add-column-btn {
-    background: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
-    border: none;
-    border-radius: 6px;
-    padding: 16px;
-    min-width: 200px;
-    font-size: 14px;
+    color: var(--vscode-descriptionForeground);
+    background: transparent;
+    border: 1px dashed var(--vscode-panel-border);
+    border-radius: var(--radius);
     cursor: pointer;
-    transition: background-color 0.2s;
-    align-self: flex-start;
 }
 
-.add-column-btn:hover {
-    background: var(--vscode-button-hoverBackground);
+.add-task-btn:hover { color: var(--vscode-foreground); border-color: var(--vscode-focusBorder); }
+.unified-archive { flex-basis: 250px; opacity: .86; }
+.unified-archive.collapsed .archive-content { display: none; }
+.archive-content { display: grid; gap: 10px; max-height: calc(100vh - 150px); max-height: calc(100dvh - 150px); overflow: auto; }
+.archive-section { padding-top: 8px; border-top: 1px solid var(--vscode-panel-border); }
+.archive-section-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.archive-section-title { margin: 0; min-width: 0; font-size: 12px; }
+.archive-tasks { display: grid; gap: 4px; margin-top: 6px; }
+.archive-task-item { padding: 6px; background: var(--vscode-editor-background); border-radius: 4px; overflow-wrap: anywhere; font-size: 11px; }
+.archive-empty-section { padding: 6px 0; color: var(--vscode-descriptionForeground); font-size: 11px; }
+
+.empty-state {
+    width: min(420px, 100%);
+    margin: 12vh auto 0;
+    padding: 24px;
+    text-align: center;
+    color: var(--vscode-descriptionForeground);
 }
 
-.show-filters-btn {
-    background: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
-    border: none;
-    border-radius: 6px;
-    padding: 16px;
-    min-width: 200px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    align-self: flex-start;
-}
+.empty-state h2 { margin: 0 0 6px; color: var(--vscode-foreground); font-size: 16px; }
+.empty-state p { margin: 0 0 16px; }
 
-.show-filters-btn:hover {
-    background: var(--vscode-button-hoverBackground);
-}
-
-/* Modal styles */
 .modal {
-    display: none;
     position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-}
-
-.modal-content {
-    background-color: var(--vscode-editor-background);
-    margin: 5% auto;
-    padding: 20px;
-    border: 1px solid var(--vscode-panel-border);
-    border-radius: 8px;
-    width: 90%;
-    max-width: 500px;
-    max-height: 80vh;
+    inset: 0;
+    z-index: 100;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding: clamp(12px, 5vh, 48px) 12px;
     overflow-y: auto;
+    background: rgba(0, 0, 0, .45);
 }
 
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--vscode-panel-border);
-}
-
-.modal-body {
-    margin-bottom: 20px;
+.modal.open { display: flex; }
+.modal-content {
+    width: min(520px, 100%);
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
+    padding: 16px;
+    overflow-y: auto;
     color: var(--vscode-foreground);
+    background: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: var(--radius);
+    box-shadow: 0 10px 32px var(--vscode-widget-shadow);
 }
 
-.modal-title {
-    font-size: 18px;
-    font-weight: 600;
-}
-
+.terminal-modal-content { width: min(620px, 100%); }
+.compact-modal-content { width: min(400px, 100%); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.modal-title { margin: 0; font-size: 16px; }
 .close-btn {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: var(--vscode-foreground);
-    padding: 0;
+    display: grid;
+    place-items: center;
     width: 30px;
     height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.form-group {
-    margin-bottom: 16px;
-}
-
-.form-label {
-    display: block;
-    margin-bottom: 4px;
-    font-weight: 500;
+    padding: 0;
     color: var(--vscode-foreground);
-}
-
-.form-input, .form-textarea, .form-select {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 4px;
-    background-color: var(--vscode-input-background);
-    color: var(--vscode-input-foreground);
-    font-family: inherit;
-    font-size: 14px;
-}
-
-.form-textarea {
-    resize: vertical;
-    min-height: 80px;
-}
-
-.form-input:focus, .form-textarea:focus, .form-select:focus {
-    outline: none;
-    border-color: var(--vscode-focusBorder);
-}
-
-.form-checkbox {
-    margin-right: 8px;
+    background: transparent;
+    border: 0;
+    border-radius: var(--radius);
+    font-size: 20px;
     cursor: pointer;
 }
+
+.close-btn:hover { background: var(--vscode-toolbar-hoverBackground); }
+.form-group { display: grid; gap: 5px; margin-bottom: 13px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-label { margin: 0; font-size: 12px; font-weight: 600; }
+.form-textarea { min-height: 76px; resize: vertical; }
+.code-input { font-family: var(--vscode-editor-font-family); font-size: 12px; }
+.prompt-template { min-height: 150px; }
+.form-help { margin: 0; color: var(--vscode-descriptionForeground); font-size: 11px; line-height: 1.4; }
+.form-error { min-height: 0; color: var(--vscode-errorForeground); font-size: 11px; }
+.form-error:empty { display: none; }
+.checkbox-field { display: flex; align-items: center; gap: 7px; }
+.form-checkbox { margin: 0; }
 
 .tags-input-container {
+    position: relative;
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
-    padding: 4px;
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 4px;
-    background-color: var(--vscode-input-background);
-    min-height: 36px;
-    align-items: center;
-    position: relative;
-}
-
-.tag-item {
-    background-color: #e3f2fd;
-    color: #1976d2;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    display: flex;
     align-items: center;
     gap: 4px;
-}
-
-.tag-remove {
-    background: none;
-    border: none;
-    color: inherit;
-    cursor: pointer;
-    padding: 0;
-    font-size: 14px;
-    line-height: 1;
-}
-
-.tags-input {
-    border: none;
-    background: none;
-    outline: none;
-    color: var(--vscode-input-foreground);
-    flex: 1;
-    min-width: 100px;
+    min-height: 34px;
     padding: 4px;
+    background: var(--vscode-input-background);
+    border: 1px solid var(--vscode-input-border, transparent);
+    border-radius: var(--radius);
 }
 
-/* 自动补全样式 */
-.tags-autocomplete-list {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background-color: var(--vscode-dropdown-background);
-    border: 1px solid var(--vscode-dropdown-border);
-    border-top: none;
-    border-radius: 0 0 4px 4px;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1000;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
+.tags-input { flex: 1; min-width: 100px; padding: 3px; color: var(--vscode-input-foreground); background: transparent; border: 0; outline: 0; }
+.tag-item { display: inline-flex; align-items: center; gap: 3px; padding: 2px 5px; color: var(--vscode-badge-foreground); background: var(--vscode-badge-background); border-radius: 3px; font-size: 11px; }
+.tag-remove,
+.step-remove { padding: 0 2px; color: inherit; background: transparent; border: 0; cursor: pointer; }
+.steps-container { display: grid; gap: 7px; }
+.steps-list { max-height: 200px; overflow-y: auto; }
+.step-item { padding: 5px; background: var(--vscode-input-background); border: 1px solid var(--vscode-input-border, transparent); border-radius: var(--radius); }
+.steps-input-row { display: flex; align-items: center; gap: 7px; }
+.steps-input { flex: 1; }
 
-.autocomplete-item {
-    padding: 8px 12px;
-    cursor: pointer;
-    color: var(--vscode-dropdown-foreground);
-    font-size: 14px;
-    border-bottom: 1px solid var(--vscode-dropdown-border);
-}
-
-.autocomplete-item:last-child {
-    border-bottom: none;
-}
-
-.autocomplete-item:hover,
-.autocomplete-item.selected {
-    background-color: var(--vscode-list-hoverBackground);
-    color: var(--vscode-list-hoverForeground);
-}
-
-.autocomplete-item.selected {
-    background-color: var(--vscode-list-activeSelectionBackground);
-    color: var(--vscode-list-activeSelectionForeground);
-}
-
-.modal-actions {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-    margin-top: 20px;
-    padding-top: 16px;
-    border-top: 1px solid var(--vscode-panel-border);
-}
-
+.modal-actions { display: flex; justify-content: flex-end; gap: 7px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--vscode-panel-border); }
+.modal-body { color: var(--vscode-foreground); }
+.modal-body p { margin: 0; }
 .btn {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.btn-primary {
-    background: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
-}
-
-.btn-primary:hover {
-    background: var(--vscode-button-hoverBackground);
-}
-
-.btn-secondary {
-    background: var(--vscode-button-secondaryBackground);
-    color: var(--vscode-button-secondaryForeground);
-}
-
-.btn-secondary:hover {
-    background: var(--vscode-button-secondaryHoverBackground);
-}
-
-/* Drag styles */
-.task-item.dragging {
-    opacity: 0.5;
-}
-
-.kanban-column.drag-over {
-    background-color: var(--vscode-list-hoverBackground);
-}
-
-/* Task drag insertion preview */
-.task-item.drag-insert-before {
-    border-top: 3px solid var(--vscode-focusBorder);
-    margin-top: 3px;
-}
-
-.task-item.drag-insert-after {
-    border-bottom: 3px solid var(--vscode-focusBorder);
-    margin-bottom: 3px;
-}
-
-/* Column drag styles */
-.kanban-column.column-dragging {
-    opacity: 0.6;
-    transform: scale(0.95);
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-    .kanban-header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .filter-section {
-        justify-content: space-between;
-    }
-
-    .board-controls {
-        flex-direction: column;
-        gap: 8px;
-        align-items: stretch;
-    }
-
-    .kanban-board {
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .kanban-column {
-        min-width: auto;
-        max-width: none;
-    }
-}
-
-/* Steps styles */
-.steps-container {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.steps-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.step-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 8px;
-    background-color: var(--vscode-input-background);
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 4px;
-}
-
-.step-item input[type="checkbox"] {
-    margin: 0;
-}
-
-.step-text {
-    flex: 1;
-    font-size: 12px;
-    color: var(--vscode-foreground);
-}
-
-.step-text.completed {
-    text-decoration: line-through;
-    color: var(--vscode-descriptionForeground);
-}
-
-.step-remove {
-    background: none;
-    border: none;
-    color: var(--vscode-descriptionForeground);
-    cursor: pointer;
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.step-remove:hover {
-    background-color: var(--vscode-button-hoverBackground);
-    color: var(--vscode-errorForeground);
-}
-
-.steps-input-row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-.steps-input {
-    flex: 1;
-    padding: 6px 10px;
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 4px;
-    background-color: var(--vscode-input-background);
-    color: var(--vscode-input-foreground);
-    font-size: 12px;
-}
-
-.steps-input:focus {
-    outline: none;
-    border-color: var(--vscode-focusBorder);
-}
-
-.add-step-btn {
-    white-space: nowrap;
-}
-
-/* Task steps in task details */
-.task-steps {
-    margin: 12px 0;
-    padding: 8px 0;
-    border-top: 1px solid var(--vscode-panel-border);
-}
-
-.task-steps-header {
-    font-weight: 600;
-    font-size: 12px;
-    color: var(--vscode-foreground);
-    margin-bottom: 8px;
-}
-
-.task-steps-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.task-step-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 0;
-}
-
-.task-step-item input[type="checkbox"] {
-    margin: 0;
+    min-height: 30px;
+    padding: 4px 11px;
+    border: 0;
+    border-radius: var(--radius);
     cursor: pointer;
 }
 
-.task-step-text {
-    flex: 1;
-    font-size: 12px;
-    color: var(--vscode-foreground);
+.btn-primary { color: var(--vscode-button-foreground); background: var(--vscode-button-background); }
+.btn-primary:hover { background: var(--vscode-button-hoverBackground); }
+.btn-secondary { color: var(--vscode-button-secondaryForeground); background: var(--vscode-button-secondaryBackground); }
+.btn-secondary:hover { background: var(--vscode-button-secondaryHoverBackground); }
+.btn-danger { color: var(--vscode-button-foreground); background: var(--vscode-inputValidation-errorBorder, var(--vscode-errorForeground)); }
+
+.action-status {
+    display: none;
+    margin: 8px 12px 0;
+    padding: 7px 10px;
+    color: var(--vscode-notifications-foreground);
+    background: var(--vscode-notifications-background);
+    border: 1px solid var(--vscode-notifications-border, var(--vscode-panel-border));
+    border-radius: var(--radius);
 }
 
-.task-step-text.completed {
-    text-decoration: line-through;
-    color: var(--vscode-descriptionForeground);
+.action-status.visible { display: block; }
+.action-status.error { color: var(--vscode-errorForeground); }
+
+@media (max-width: 760px) {
+    .app-toolbar { align-items: stretch; flex-direction: column; }
+    .board-picker { max-width: 100%; }
+    .toolbar-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .toolbar-btn { width: 100%; overflow: hidden; text-overflow: ellipsis; }
+    .kanban-header.visible { align-items: stretch; flex-direction: column; }
+    .filter-actions { margin-left: 0; }
+    #kanban-container { overflow-x: visible; }
+    .kanban-board { flex-direction: column; min-height: auto; }
+    .kanban-column { width: 100%; flex-basis: auto; }
+    .form-grid { grid-template-columns: 1fr; gap: 0; }
+    .task-actions { justify-content: flex-start; }
 }
 
-/* Task steps progress indicator */
-.task-steps-progress {
-    background-color: var(--vscode-badge-background);
-    color: var(--vscode-badge-foreground);
-    border-radius: 10px;
-    padding: 2px 6px;
-    font-size: 10px;
-    font-weight: 500;
-    margin-right: 4px;
-}
-
-/* Step drag handle */
-.step-drag-handle {
-    color: var(--vscode-descriptionForeground);
-    cursor: grab;
-    font-size: 12px;
-    padding: 2px;
-    user-select: none;
-    opacity: 0.6;
-    transition: opacity 0.2s;
-}
-
-.step-item:hover .step-drag-handle,
-.task-step-item:hover .step-drag-handle {
-    opacity: 1;
-}
-
-.step-drag-handle:active {
-    cursor: grabbing;
-}
-
-/* Step dragging styles */
-.step-item.dragging,
-.task-step-item.dragging {
-    opacity: 0.5;
-    transform: rotate(2deg);
-    background-color: var(--vscode-list-hoverBackground);
-    border-color: var(--vscode-focusBorder);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* Step drag ready state */
-.step-item.drag-ready,
-.task-step-item.drag-ready {
-    background-color: var(--vscode-list-hoverBackground);
-    border-color: var(--vscode-focusBorder);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    cursor: grabbing !important;
-}
-
-/* Step long press hint */
-.step-item:hover,
-.task-step-item:hover {
-    background-color: var(--vscode-list-hoverBackground);
-}
-
-.steps-list.drag-over,
-.task-steps-list.drag-over {
-    background-color: var(--vscode-list-hoverBackground);
-    border-radius: 4px;
-    outline: 2px dashed var(--vscode-focusBorder);
-    outline-offset: 2px;
-}
-
-/* Step item insertion preview */
-.step-item.drag-insert-before,
-.task-step-item.drag-insert-before {
-    border-top: 2px solid var(--vscode-focusBorder);
-    margin-top: 2px;
-}
-
-.step-item.drag-insert-after,
-.task-step-item.drag-insert-after {
-    border-bottom: 2px solid var(--vscode-focusBorder);
-    margin-bottom: 2px;
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Markdown Kanban"
+  short_description: "Manage multiple project todo boards in Markdown"
+  default_prompt: "Use $markdown-kanban to create or update a project todo board."
