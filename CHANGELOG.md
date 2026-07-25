@@ -1,3 +1,11 @@
+## [1.3.3] (2026-07-25)
+
+### Fixes
+
+* **fix:** Preserve task properties and steps with one-space, two-space, or Prettier-style indentation ([#19](https://github.com/holooooo/markdown-kanban/issues/19))
+* **fix:** Keep priority and due date changes visible after save by synchronizing webview initialization ([#18](https://github.com/holooooo/markdown-kanban/issues/18))
+* **fix:** Clamp task reorder indexes when moving tasks within a column ([#16](https://github.com/holooooo/markdown-kanban/issues/16))
+
 ## [1.0.2] (2025-06-04)
 
 ### Features

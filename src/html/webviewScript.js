@@ -1511,6 +1511,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('hide-filters').addEventListener('click', () => {
     toggleFilters(false)
   })
+
+  // The extension replaces the webview HTML after every save. Signal that this
+  // document is ready before it sends the current board state.
+  vscode.postMessage({ type: 'ready' })
 })
 
 // Form submission handling

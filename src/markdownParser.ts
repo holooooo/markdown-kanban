@@ -37,33 +37,24 @@ export class MarkdownKanbanParser {
 
     let currentColumn: KanbanColumn | null = null;
     let currentTask: KanbanTask | null = null;
-    let inTaskProperties = false;
-    let inTaskDescription = false;
     let inCodeBlock = false;
+    let taskIndent = 0;
+    let stepsIndent = -1;
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       const trimmedLine = line.trim();
+      const indentation = this.getIndentation(line);
 
       // 检查代码块标记
-      if (trimmedLine.startsWith('```')) {
-        if (inTaskDescription) {
-          if (trimmedLine === '```md' || trimmedLine === '```') {
-            inCodeBlock = !inCodeBlock;
-            continue;
-          }
-        }
-      }
-
-      // 如果在代码块内部，处理为描述内容
-      if (inCodeBlock && inTaskDescription && currentTask) {
+      if (inCodeBlock) {
         if (trimmedLine === '```') {
           inCodeBlock = false;
-          inTaskDescription = false;
           continue;
-        } else {
-          const cleanLine = line.replace(/^\s{4,}/, '');
-          currentTask.description = currentTask.description 
+        }
+        if (currentTask) {
+          const cleanLine = line.replace(/^\s{4}/, '');
+          currentTask.description = currentTask.description
             ? currentTask.description + '\n' + cleanLine
             : cleanLine;
         }
@@ -75,8 +66,7 @@ export class MarkdownKanbanParser {
         board.title = trimmedLine.substring(2).trim();
         this.finalizeCurrentTask(currentTask, currentColumn);
         currentTask = null;
-        inTaskProperties = false;
-        inTaskDescription = false;
+        stepsIndent = -1;
         continue;
       }
 
@@ -103,54 +93,45 @@ export class MarkdownKanbanParser {
           tasks: [],
           archived: isArchived
         };
-        inTaskProperties = false;
-        inTaskDescription = false;
+        stepsIndent = -1;
         continue;
       }
 
       // 解析任务标题
-      if (!inCodeBlock && this.isTaskTitle(line, trimmedLine)) {
+      if (this.isTaskTitle(line, trimmedLine)) {
         this.finalizeCurrentTask(currentTask, currentColumn);
 
         if (currentColumn) {
-          let taskTitle = '';
-          
-          if (trimmedLine.startsWith('### ')) {
-            taskTitle = trimmedLine.substring(4).trim();
-          } else {
-            taskTitle = trimmedLine.substring(2).trim();
-            // 移除复选框标记
-            if (taskTitle.startsWith('[ ] ') || taskTitle.startsWith('[x] ')) {
-              taskTitle = taskTitle.substring(4).trim();
-            }
-          }
+          const taskTitle = this.getTaskTitle(trimmedLine);
 
           currentTask = {
             id: this.generateId(),
             title: taskTitle,
             description: ''
           };
-          inTaskProperties = true;
-          inTaskDescription = false;
+          taskIndent = indentation;
+          stepsIndent = -1;
         }
         continue;
       }
 
       // 解析任务属性
-      if (!inCodeBlock && currentTask && inTaskProperties) {
-        if (this.parseTaskProperty(line, currentTask)) {
+      if (currentTask) {
+        const property = this.parseTaskProperty(line, currentTask);
+        if (property) {
+          if (property === 'steps') {
+            stepsIndent = indentation;
+          }
           continue;
         }
-        
+
         // 解析 steps 中的具体步骤项
-        if (this.parseTaskStep(line, currentTask)) {
+        if (currentTask.steps && stepsIndent >= 0 && indentation > stepsIndent && this.parseTaskStep(line, currentTask)) {
           continue;
         }
-        
+
         // 检查是否开始描述部分
-        if (line.match(/^\s+```md/)) {
-          inTaskProperties = false;
-          inTaskDescription = true;
+        if (indentation > taskIndent && /^```(?:md|markdown)?\s*$/.test(trimmedLine)) {
           inCodeBlock = true;
           continue;
         }
@@ -162,11 +143,10 @@ export class MarkdownKanbanParser {
       }
 
       // 结束当前任务
-      if (!inCodeBlock && currentTask && (inTaskProperties || inTaskDescription)) {
+      if (currentTask) {
         this.finalizeCurrentTask(currentTask, currentColumn);
         currentTask = null;
-        inTaskProperties = false;
-        inTaskDescription = false;
+        stepsIndent = -1;
         i--;
       }
     }
@@ -181,22 +161,30 @@ export class MarkdownKanbanParser {
   }
 
   private static isTaskTitle(line: string, trimmedLine: string): boolean {
-    // 排除属性行和步骤项
-    if (line.startsWith('- ') && 
-        (trimmedLine.match(/^\s*- (due|tags|priority|workload|steps|defaultExpanded):/) ||
-         line.match(/^\s{6,}- \[([ x])\]/))) {
-      return false;
-    }
-    
-    return (line.startsWith('- ') && !line.startsWith('  ')) || 
-           trimmedLine.startsWith('### ');
+    return /^###\s+/.test(trimmedLine) ||
+      (/^-\s+/.test(line) && !/^\s*-\s+(?:due|tags|priority|workload|steps|defaultExpanded):/.test(line));
   }
 
-  private static parseTaskProperty(line: string, task: KanbanTask): boolean {
-    const propertyMatch = line.match(/^\s+- (due|tags|priority|workload|steps|defaultExpanded):\s*(.*)$/);
+  private static getIndentation(line: string): number {
+    const match = line.match(/^[ \t]*/);
+    return match ? match[0].replace(/\t/g, '    ').length : 0;
+  }
+
+  private static getTaskTitle(trimmedLine: string): string {
+    let title = trimmedLine.startsWith('###')
+      ? trimmedLine.replace(/^###\s+/, '')
+      : trimmedLine.replace(/^-\s+/, '');
+    if (/^\[[ xX]\]\s+/.test(title)) {
+      title = title.substring(4).trim();
+    }
+    return title.trim();
+  }
+
+  private static parseTaskProperty(line: string, task: KanbanTask): string | false {
+    const propertyMatch = line.match(/^(\s*)-\s+(due|tags|priority|workload|steps|defaultExpanded):\s*(.*)$/);
     if (!propertyMatch) return false;
 
-    const [, propertyName, propertyValue] = propertyMatch;
+    const [, , propertyName, propertyValue] = propertyMatch;
     const value = propertyValue.trim();
 
     switch (propertyName) {
@@ -226,19 +214,19 @@ export class MarkdownKanbanParser {
         task.steps = [];
         break;
     }
-    return true;
+    return propertyName;
   }
 
   private static parseTaskStep(line: string, task: KanbanTask): boolean {
     if (!task.steps) return false;
     
-    const stepMatch = line.match(/^\s{6,}- \[([ x])\]\s*(.*)$/);
+    const stepMatch = line.match(/^\s*-\s+\[([ xX])\]\s*(.*)$/);
     if (!stepMatch) return false;
 
     const [, checkmark, text] = stepMatch;
     task.steps.push({ 
       text: text.trim(), 
-      completed: checkmark === 'x' 
+      completed: checkmark.toLowerCase() === 'x'
     });
     return true;
   }

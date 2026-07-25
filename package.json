@@ -3,7 +3,7 @@
   "displayName": "Markdown Kanban",
   "description": "Kanban board for Markdown files",
   "publisher": "holooooo",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "engines": {
     "vscode": "^1.74.0"
   },

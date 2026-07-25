@@ -14,6 +14,7 @@ export class KanbanWebviewPanel {
     private _disposables: vscode.Disposable[] = [];
     private _board?: KanbanBoard;
     private _document?: vscode.TextDocument;
+    private _webviewReady = false;
 
     public static createOrShow(extensionUri: vscode.Uri, context: vscode.ExtensionContext, document?: vscode.TextDocument) {
         const column = vscode.window.activeTextEditor?.viewColumn;
@@ -79,7 +80,14 @@ export class KanbanWebviewPanel {
         );
 
         this._panel.webview.onDidReceiveMessage(
-            message => this._handleMessage(message),
+            message => {
+                if (message.type === 'ready') {
+                    this._webviewReady = true;
+                    this._postBoard();
+                    return;
+                }
+                this._handleMessage(message);
+            },
             null,
             this._disposables
         );
@@ -135,8 +143,13 @@ export class KanbanWebviewPanel {
     private _update() {
         if (!this._panel.webview) return;
 
+        this._webviewReady = false;
         this._panel.webview.html = this._getHtmlForWebview();
-        
+    }
+
+    private _postBoard() {
+        if (!this._webviewReady || !this._panel.webview) return;
+
         const board = this._board || { title: 'Please open a Markdown Kanban file', columns: [] };
         this._panel.webview.postMessage({
             type: 'updateBoard',
@@ -199,7 +212,8 @@ export class KanbanWebviewPanel {
             if (taskIndex === -1) return;
 
             const task = fromColumn.tasks.splice(taskIndex, 1)[0];
-            toColumn.tasks.splice(newIndex, 0, task);
+            const targetIndex = Math.max(0, Math.min(Number.isFinite(newIndex) ? newIndex : toColumn.tasks.length, toColumn.tasks.length));
+            toColumn.tasks.splice(targetIndex, 0, task);
         });
     }
 
